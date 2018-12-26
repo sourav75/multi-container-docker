@@ -1,0 +1,23 @@
+sudo: required
+language: generic
+services: 
+  - docker
+
+before_install:
+  - docker build -t souravpcs/multi-react-test -f ./client/Dockerfile.dev ./client
+
+scripts:
+  - docker run souravpcs/multi-react-test npm test -- --coverage
+
+after_success:
+  - docker build -t souravpcs/multi-container-client ./client
+  - docker build -t souravpcs/multi-container-nginx ./nginx
+  - docker build -t souravpcs/multi-container-server ./server
+  - docker build -t souravpcs/multi-container-worker ./worker
+  # LOG IN TO THE DOCKER CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # PUSH IMAGES TO DOCKER HUB
+  - docker push souravpcs/multi-container-client
+  - docker push souravpcs/multi-container-nginx 
+  - docker push souravpcs/multi-container-server
+  - docker push souravpcs/multi-container-worker
